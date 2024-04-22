@@ -19,7 +19,7 @@ export default class WebSocketService {
     this.socket.send(JSON.stringify(data));
   }
 
-  getMessage() {
-    this.socket.addEventListener('message', (event) => event.data);
+  getSoket() {
+    return this.socket;
   }
 }

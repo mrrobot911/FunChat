@@ -1,7 +1,7 @@
 import BaseComponent from '../../components/baseComponent';
 import Input from '../../components/input/input';
 
-export default class Login extends BaseComponent {
+export default class LoginPage extends BaseComponent {
   private readonly form: BaseComponent<'form'> = new BaseComponent({
     tag: 'form',
     className: 'login-form',
@@ -30,5 +30,10 @@ export default class Login extends BaseComponent {
 
   getFormElement() {
     return this.form;
+  }
+
+  cleareForm() {
+    this.login.setValue('');
+    this.password.setValue('');
   }
 }

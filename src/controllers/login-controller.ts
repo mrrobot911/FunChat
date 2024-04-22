@@ -1,15 +1,15 @@
 import BaseComponent from '../components/baseComponent';
 import Input from '../components/input/input';
-import Login from '../pages/login/login';
+import LoginPage from '../pages/login/login';
 import WebSocketService from '../services/websoket-service';
 
 export default class LoginController {
-  private readonly view: Login;
+  private readonly view: LoginPage;
 
   private readonly webSocketService = new WebSocketService();
 
   constructor(private readonly root: BaseComponent<'section'>) {
-    this.view = new Login(this.root.getNode(), 'login');
+    this.view = new LoginPage(this.root.getNode(), 'login');
     this.addFormListener();
   }
 
@@ -34,6 +34,8 @@ export default class LoginController {
         },
       };
       this.webSocketService.getLogin(data);
+      this.view.cleareForm();
+      this.removeLoginPage();
     });
   }
 
@@ -45,7 +47,7 @@ export default class LoginController {
     this.view.getNode().remove();
   }
 
-  destroyCar() {
+  destroyLogin() {
     this.root.destroy();
   }
 }
