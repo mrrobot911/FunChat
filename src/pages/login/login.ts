@@ -1,5 +1,6 @@
 import BaseComponent from '../../components/baseComponent';
 import Input from '../../components/input/input';
+import './login.css';
 
 export default class LoginPage extends BaseComponent {
   private readonly form: BaseComponent<'form'> = new BaseComponent({

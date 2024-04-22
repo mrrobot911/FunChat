@@ -2,18 +2,10 @@ import BaseComponent from '../components/baseComponent';
 import ChatPage from '../pages/chat/chat';
 
 export default class ChatController {
-  private readonly view: ChatPage;
-
-  constructor(private readonly root: BaseComponent<'section'>) {
-    this.view = new ChatPage(this.root.getNode(), 'chat');
-  }
+  constructor(private readonly root: BaseComponent<'section'>) {}
 
   renderChatPage() {
-    this.root.append(this.view);
-  }
-
-  removeChatPage() {
-    this.view.getNode().remove();
+    this.root.append(new ChatPage(this.root.getNode(), 'chat'));
   }
 
   destroyChat() {
