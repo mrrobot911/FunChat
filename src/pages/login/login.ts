@@ -1,7 +1,7 @@
 import BaseComponent from '../../components/baseComponent';
 import Input from '../../components/input/input';
 
-class Login extends BaseComponent {
+export default class Login extends BaseComponent {
   private readonly form: BaseComponent<'form'> = new BaseComponent({
     tag: 'form',
     className: 'login-form',
@@ -24,19 +24,11 @@ class Login extends BaseComponent {
 
   constructor(parent: HTMLElement, className: string) {
     super({ className, parent });
-    this.form.addListener('submit', (e?: Event) => {
-      if (e) e.preventDefault();
-    });
     this.form.appendChildren([this.login, this.password, this.submit]);
-  }
-
-  renderLoginPage() {
     this.append(this.form);
   }
 
-  removeLoginPage() {
-    this.node.remove();
+  getFormElement() {
+    return this.form;
   }
 }
-
-export default Login;

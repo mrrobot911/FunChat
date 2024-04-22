@@ -1,25 +1,24 @@
 import BaseComponent from '../components/baseComponent';
 import Footer from '../components/footer/footer';
 import Header from '../components/header/header';
-import Login from '../pages/login/login';
+import LoginController from './login-controller';
 
 export default class Controller extends BaseComponent {
-  private readonly appRoot: BaseComponent;
+  private readonly appRoot: BaseComponent<'section'>;
 
   private readonly header: Header;
 
-  private readonly form: Login;
-
   private readonly footer: Footer;
+
+  private readonly loginController: LoginController;
 
   constructor() {
     super({ className: 'app' });
-    this.appRoot = new BaseComponent({ className: 'page' });
+    this.appRoot = new BaseComponent({ tag: 'section', className: 'page' });
     this.header = new Header('header', this.node);
+    this.loginController = new LoginController(this.appRoot);
+    this.loginController.renderLoginPage();
     this.footer = new Footer('footer', this.node);
-    this.form = new Login(this.appRoot.getNode(), 'login');
-
-    this.form.renderLoginPage();
 
     this.appendChildren([
       this.header.getNode(),
