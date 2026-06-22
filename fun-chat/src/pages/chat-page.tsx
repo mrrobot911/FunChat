@@ -35,7 +35,7 @@ export function ChatPage(): React.JSX.Element {
   function logout(): void {
     if (!currentUserRef.current) return;
     sendMessage({
-      type: 'USER_LOGOUT',
+      type: 'USER_LOGOUT' as const,
       payload: { user: currentUserRef.current },
     });
   }

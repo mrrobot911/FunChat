@@ -1,7 +1,7 @@
 import { Context } from '@/app';
 import { deleteMessage, sendEditedMessage } from '@/helpers/messages';
 import React from '@/react';
-import type { ControlsProps, Message, SocketMessage } from '@/types';
+import type { ControlsProps, Message, OutgoingMessage } from '@/types';
 
 export function MessageElement({
   message,
@@ -73,7 +73,7 @@ export function MessageElement({
   }, [contextMenu]);
 
   function confirmEdit(
-    sendMessage: (message: SocketMessage) => void,
+    sendMessage: (message: OutgoingMessage) => void,
     id: string,
     editedMessage: string
   ): void {

@@ -166,7 +166,7 @@ export type ControlsProps = {
 export type OutgoingSendMessage = {
   type: 'MSG_SEND';
   payload: {
-    message: Pick<Message, 'from' | 'to' | 'text'>;
+    message: Pick<Message, 'to' | 'text'> & { from?: string };
   };
 };
 
@@ -193,7 +193,12 @@ export type OutgoingReadMessage = {
 
 export type OutgoingLogoutMessage = {
   type: 'USER_LOGOUT';
-  payload: null;
+  payload: {
+    user: {
+      password: string;
+      login: string;
+    };
+  };
 };
 
 export type OutgoingUsersListMessage = {

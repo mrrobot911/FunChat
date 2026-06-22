@@ -1,4 +1,4 @@
-import type { Message, SocketMessage, User } from '@/types';
+import type { Message, OutgoingMessage, User } from '@/types';
 
 type FilteredResult = {
   filteredMessages: Record<string, Record<string, Message[]>>;
@@ -10,7 +10,7 @@ type Params = {
   autoReadEnabled: boolean;
   talker: User | null;
   currentUserLogin?: string;
-  sendMessage: (payload: SocketMessage) => void;
+  sendMessage: (payload: OutgoingMessage) => void;
   activateChatEvent: () => void;
 };
 

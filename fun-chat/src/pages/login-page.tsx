@@ -13,7 +13,7 @@ export function Login(): React.JSX.Element {
     const password = formData.get('password') as string;
 
     const request = {
-      type: 'USER_LOGIN',
+      type: 'USER_LOGIN' as const,
       payload: {
         user: {
           login,
