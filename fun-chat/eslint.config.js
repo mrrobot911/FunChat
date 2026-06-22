@@ -49,6 +49,7 @@ export default [
       'unicorn/prefer-global-this': 'off',
       'prefer-global-this': 'off',
       'unicorn/prefer-add-event-listener': 'off',
+      'unicorn/require-array-join-separator': 'off',
     },
   },
   prettier,

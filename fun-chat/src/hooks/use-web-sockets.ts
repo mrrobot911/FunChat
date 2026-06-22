@@ -3,13 +3,22 @@ import { authService } from '@/services/local-storage.service';
 import React from '@/react';
 import type {
   ErrorStore,
-  SocketMessage,
+  OutgoingMessage,
   User,
   UserData,
   WebSocketHook,
 } from '@/types';
-import { isAuthMessage, isGetHistoryMessage } from '@/validators';
-import { messageManager } from '@/services/message-manager.service';
+import {
+  messageManager,
+  prepareOutgoingMessage,
+  HANDLED_EVENT_TYPES,
+} from '@/services/message-manager.service';
+import socket from '@/helpers/socket';
+import type { Channel } from 'phoenix';
+
+const BROADCAST_EVENTS = HANDLED_EVENT_TYPES.filter(
+  (e) => e !== 'USER_LOGIN' && e !== 'MSG_FROM_USER' && e !== 'USER_LOGOUT'
+);
 
 export function useWebSockets(): WebSocketHook {
   const [isConnected, setIsConnected] = React.useState<boolean>(false);
@@ -17,7 +26,7 @@ export function useWebSockets(): WebSocketHook {
   const [messages, dispatchMessages] = React.useReducer(messagesReducer, {});
   const [error, setError] = React.useState<ErrorStore[]>([]);
 
-  const socketRef = React.useRef<WebSocket | null>(null);
+  const channelRef = React.useRef<Channel | null>(null);
   const currentUserRef = React.useRef<UserData | null>(authService.getUser());
   const pendingMessagesMapRef = React.useRef<Map<string, string>>(
     new Map<string, string>()
@@ -47,89 +56,97 @@ export function useWebSockets(): WebSocketHook {
     setTimeout(() => setError((pre) => pre.filter((e) => e !== error)), 2000);
   }
 
+  const handleMessage = (data: unknown, eventType?: string): void => {
+    messageManager(
+      data,
+      pendingMessagesMapRef,
+      sendMessage,
+      currentUserRef,
+      dispatchMessages,
+      addUser,
+      addUsers,
+      clearUsers,
+      addError,
+      eventType
+    );
+  };
+
   const connect = React.useCallback(() => {
-    if (socketRef.current) return;
+    if (channelRef.current) {
+      return;
+    }
 
-    const ws = new WebSocket('ws://localhost:4000');
+    socket.connect();
 
-    ws.onopen = (): void => {
-      setIsConnected(true);
-
-      socketRef.current = ws;
-      if (currentUserRef.current !== null) {
-        sendMessage({
-          type: 'USER_LOGIN',
-          payload: { user: currentUserRef.current },
-        });
-      }
-    };
-
-    ws.onmessage = (message): void => {
-      if (typeof message.data !== 'string') return;
-      const data: unknown = JSON.parse(message.data);
-
-      messageManager(
-        data,
-        pendingMessagesMapRef,
-        sendMessage,
-        currentUserRef,
-        dispatchMessages,
-        addUser,
-        addUsers,
-        clearUsers,
-        addError
-      );
-    };
-
-    ws.onclose = (): void => {
+    const handleDisconnect = (): void => {
       setIsConnected(false);
-      socketRef.current = null;
       clearUsers();
-      connect();
     };
 
-    ws.onerror = (error): void => {
-      console.error(error);
-    };
+    socket.onError(handleDisconnect);
+    socket.onClose(handleDisconnect);
+
+    const channel = socket.channel('chat:lobby', {});
+    channelRef.current = channel;
+
+    channel.onError(handleDisconnect);
+    channel.onClose(handleDisconnect);
+
+    channel
+      .join()
+      .receive('ok', () => {
+        setIsConnected(true);
+
+        if (currentUserRef.current !== null) {
+          sendMessage({
+            type: 'USER_LOGIN',
+            payload: { user: currentUserRef.current },
+          });
+        }
+      })
+      .receive('error', () => {
+        setIsConnected(false);
+      });
+
+    for (const event of BROADCAST_EVENTS) {
+      channel.on(event, (response: unknown) => {
+        handleMessage(response, event);
+      });
+    }
   }, []);
 
-  const sendMessage = React.useCallback(
-    (message: SocketMessage): void => {
-      const id = crypto.randomUUID();
+  const sendMessage = React.useCallback((message: OutgoingMessage): void => {
+    if (!channelRef.current) {
+      console.error('Channel is not connected. Unable to send message.');
+      return;
+    }
 
-      const data = {
-        ...message,
-        id,
-      };
+    const { eventType, payload } = prepareOutgoingMessage(
+      message,
+      pendingMessagesMapRef,
+      currentUserRef.current?.login
+    );
 
-      if (isGetHistoryMessage(message)) {
-        pendingMessagesMapRef.current?.set(id, message.payload.user.login);
-      }
-      if (isAuthMessage(message)) {
-        pendingMessagesMapRef.current?.set(
-          id,
-          JSON.stringify(message.payload.user)
-        );
-      }
-
-      if (
-        socketRef.current &&
-        socketRef.current.readyState === WebSocket.OPEN
-      ) {
-        socketRef.current.send(JSON.stringify(data));
-      } else {
-        console.error('WebSocket is not open. Unable to send message.');
-      }
-    },
-    [socketRef.current]
-  );
+    channelRef.current
+      .push(eventType, payload)
+      .receive('ok', (response: unknown) => {
+        handleMessage(response);
+      })
+      .receive('error', (err: unknown) => {
+        handleMessage(err);
+      });
+  }, []);
 
   const disconnect = React.useCallback(() => {
-    if (socketRef.current) {
-      socketRef.current.close();
-      socketRef.current = null;
+    if (channelRef.current) {
+      channelRef.current.leave();
+      channelRef.current = null;
     }
-  }, [socketRef.current]);
+
+    socket.disconnect();
+    setIsConnected(false);
+    clearUsers();
+  }, []);
 
   return {
     connect,

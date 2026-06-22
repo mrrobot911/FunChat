@@ -1,7 +1,7 @@
-import type { SocketMessage, User } from '@/types';
+import type { OutgoingMessage, User } from '@/types';
 
 export function getUsersList(
-  sendMessage: (message: SocketMessage) => void
+  sendMessage: (message: OutgoingMessage) => void
 ): void {
   sendMessage({
     payload: null,
@@ -14,7 +14,7 @@ export function getUsersList(
 }
 
 export function getUserMessages(
-  sendMessage: (message: SocketMessage) => void,
+  sendMessage: (message: OutgoingMessage) => void,
   users: User[]
 ): void {
   for (const user of users) {
@@ -26,7 +26,7 @@ export function getUserMessages(
 }
 
 export function deleteMessage(
-  sendMessage: (message: SocketMessage) => void,
+  sendMessage: (message: OutgoingMessage) => void,
   id: string
 ): void {
   sendMessage({
@@ -34,16 +34,13 @@ export function deleteMessage(
     payload: {
       message: {
         id,
-        status: {
-          isDeleted: true,
-        },
       },
     },
   });
 }
 
 export function sendEditedMessage(
-  sendMessage: (message: SocketMessage) => void,
+  sendMessage: (message: OutgoingMessage) => void,
   id: string,
   text: string
 ): void {

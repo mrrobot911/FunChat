@@ -1,6 +1,6 @@
 export type WebSocketHook = {
   connect: () => void;
-  sendMessage: (message: SocketMessage) => void;
+  sendMessage: (message: OutgoingMessage) => void;
   disconnect: () => void;
   isConnected: boolean;
   currentUserRef: { current: UserData | null };
@@ -114,6 +114,7 @@ export type Message = {
     isDelivered: boolean;
     isReaded: boolean;
     isEdited: boolean;
+    isDeleted?: boolean;
   };
 };
 
@@ -160,4 +161,58 @@ export type ErrorStore = {
 export type ControlsProps = {
   id: string;
   status: boolean;
+};
+
+export type OutgoingSendMessage = {
+  type: 'MSG_SEND';
+  payload: {
+    message: Pick<Message, 'from' | 'to' | 'text'>;
+  };
+};
+
+export type OutgoingEditMessage = {
+  type: 'MSG_EDIT';
+  payload: {
+    message: Pick<Message, 'id' | 'text'>;
+  };
+};
+
+export type OutgoingDeleteMessage = {
+  type: 'MSG_DELETE';
+  payload: {
+    message: Pick<Message, 'id'>;
+  };
+};
+
+export type OutgoingReadMessage = {
+  type: 'MSG_READ';
+  payload: {
+    message: Pick<Message, 'id'>;
+  };
+};
+
+export type OutgoingLogoutMessage = {
+  type: 'USER_LOGOUT';
+  payload: null;
+};
+
+export type OutgoingUsersListMessage = {
+  type: 'USER_ACTIVE' | 'USER_INACTIVE';
+  payload: null;
+};
+
+export type OutgoingMessage =
+  | AuthMessage
+  | GetHistoryMessage
+  | OutgoingSendMessage
+  | OutgoingEditMessage
+  | OutgoingDeleteMessage
+  | OutgoingReadMessage
+  | OutgoingLogoutMessage
+  | OutgoingUsersListMessage;
+
+export type PreparedOutgoingMessage = {
+  eventType: string;
+  payload: Record<string, unknown>;
+  requestId: string;
 };
